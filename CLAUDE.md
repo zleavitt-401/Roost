@@ -1,46 +1,69 @@
-# Roost — Claude Code Context
+# CLAUDE.md
+> 📜 **Single Source of Truth**: `.specify/constitution.md`
+> Always check constitution before design decisions.
 
-## What Is This Project
-
-Roost is an AI-powered life-relocation assistant. Users discover locations where they'd
-thrive — not just job listings. The AI agent pipeline processes user profiles and surfaces
-personalized, context-rich relocation recommendations.
-
-## Constitution
-
-The project constitution lives at `.specify/memory/constitution.md`. Read it before
-implementing any feature. All seven principles are non-negotiable.
+## Project Overview
+**Roost** — An AI-powered life-relocation assistant that helps users discover US locations where they'd thrive, not just find job listings. Users upload a resume, answer lifestyle questions, and receive comprehensive location reports assembled by AI agents within 24 hours.
 
 ## Tech Stack
+- **Framework**: Next.js 14+ (App Router) with React 18
+- **Styling**: Tailwind CSS with custom earthy/warm design tokens
+- **Auth & DB**: Firebase (Auth, Firestore, Storage)
+- **AI**: Anthropic Claude API (claude-sonnet-4-20250514) with web search tool
+- **Email**: Nodemailer with Gmail (Google App Password)
+- **Deployment**: Vercel
 
-- **Framework:** Next.js 14+ App Router, React 18
-- **Styling:** Tailwind CSS
-- **Auth/DB/Storage:** Firebase (Auth, Firestore, Storage)
-- **AI:** Anthropic Claude API — `claude-sonnet-4-20250514`
-- **Email:** Nodemailer + Gmail App Password
-- **Deploy:** Vercel (preview per branch, prod from `main`)
+## Development Workflow
+```bash
+# Start dev server
+npm run dev
 
-## File Ownership (Principle 6)
+# Build for production
+npm run build
 
-| Team | Directories |
-|------|-------------|
-| Foundation | `src/lib/`, `src/types/`, firebase config |
-| Auth & Onboarding | `src/app/(auth)/`, `src/app/onboarding/`, `src/components/onboarding/` |
-| Agent Pipeline | `src/app/api/agents/`, `src/lib/agents/`, `src/lib/email/` |
-| Results Dashboard | `src/app/dashboard/`, `src/components/dashboard/`, `src/components/ui/` |
+# Deploy (automatic via Vercel on push to main)
+git push origin main
 
-## Key Architectural Constraints
+# Preview deployments (automatic on feature branch push)
+git push origin feature/branch-name
+```
 
-- Agent processing is **always async** — never block on Claude API calls
-- Firestore `onSnapshot` for real-time updates — no WebSockets, no polling
-- Server keys (`ANTHROPIC_API_KEY`, `GMAIL_APP_PASSWORD`, Firebase Admin) MUST stay server-side
-- Firebase client config is intentionally public — that's fine
+## Core Principles
+See `.specify/constitution.md` for:
+- Architecture patterns (App Router, server components, Firestore real-time listeners)
+- Code quality standards (error handling, loading states, WCAG 2.1 AA)
+- Security policies (env vars for secrets, Firebase Security Rules)
+- Frontend design direction (earthy/warm palette, distinctive typography, NOT generic AI aesthetic)
 
-## Spec Kit Workflow
+## Directory Ownership (Agent Teams)
+- **Foundation**: `src/lib/`, `src/types/`, `src/app/layout.tsx`, `src/app/page.tsx`, config files
+- **Auth & Onboarding**: `src/app/(auth)/`, `src/app/onboarding/`, `src/components/onboarding/`, `src/lib/questionnaire/`
+- **Agent Pipeline**: `src/app/api/`, `src/lib/agents/`, `src/lib/email/`
+- **Results Dashboard**: `src/app/dashboard/`, `src/components/dashboard/`, `src/components/ui/`
 
-1. `/speckit.constitution` — update project principles
-2. `/speckit.specify <feature>` — write feature spec
-3. `/speckit.clarify` — resolve open questions
-4. `/speckit.plan` — design implementation
-5. `/speckit.tasks` — generate task list
-6. `/speckit.implement` — execute tasks
+Do not modify files outside your assigned directories.
+
+## Key Data Flow
+1. User registers → uploads resume → completes questionnaire
+2. Profile assembled → written to Firestore (`users/{userId}/profile`)
+3. Agent trigger API called (`POST /api/agents/trigger`)
+4. 3 agents run async: Location Profiler → Job Scout + Housing Analyst (parallel per city)
+5. Results written to Firestore (`users/{userId}/results/{resultId}`)
+6. User notified via email → views results on dashboard via Firestore `onSnapshot`
+
+## Three AI Agents (MVP)
+- **Job Scout**: Matches jobs to user's parsed resume + career preferences across identified cities
+- **Location Profiler**: Identifies 3-5 best-fit US cities based on lifestyle/values preferences
+- **Housing & Budget Analyst**: Finds rentals and builds sample monthly budgets per city
+
+## Current Development
+**Active Work**: MVP build — foundation, auth/onboarding, agent pipeline, results dashboard (Agent Teams parallel)
+**Known Issues**: None yet (greenfield project)
+**Next Steps**: After MVP — partner profiles, meetup discovery agent, "Research Deeper" feature, re-run agents with updated preferences
+
+## Environment Variables
+See `.env.example` for required keys:
+- `NEXT_PUBLIC_FIREBASE_*` — Firebase client config
+- `ANTHROPIC_API_KEY` — Claude API (server-side only)
+- `GMAIL_USER` / `GMAIL_APP_PASSWORD` — email notifications
+- `NEXT_PUBLIC_APP_URL` — app base URL
