@@ -1,35 +1,42 @@
-# Frontend Rules
+---
+paths:
+  - "src/app/**/*.tsx"
+  - "src/components/**/*.tsx"
+---
 
-## Design System
-- Colors: use the custom Tailwind tokens (`terracotta`, `sage`, `cream`, `charcoal`, `accent`)
-- Never use hex values inline — always use design tokens
+# Frontend & UI Rules
+
+## Design Direction
+- Warm, earthy palette: use Tailwind tokens `terracotta`, `sage`, `cream`, `charcoal`, `accent` — never hardcode hex values
 - Typography: `font-display` (Fraunces) for headlines, `font-body` (DM Sans) for body text
-- Do NOT produce generic AI aesthetic — avoid default Tailwind blue, stock gradients, and placeholder UI patterns
+- The vibe is "a thoughtful friend helping you find home" — NOT a corporate relocation tool
+- Never use generic AI aesthetic: no purple gradients, no Inter/Roboto, no cookie-cutter layouts
+- Generous whitespace, card-based layouts, subtle transitions
 
 ## Component Architecture
 - Prefer React Server Components by default; add `'use client'` only when needed (event handlers, hooks, browser APIs)
-- Keep client components at the leaves of the component tree
-- All shared UI primitives go in `src/components/ui/`
-- Feature-specific components go in their team's directory (`dashboard/`, `onboarding/`)
+- Keep client components at the leaves of the component tree — keep them lean
+- All shared UI primitives go in `src/components/ui/`; feature-specific components in team directories
+- Loading states: skeleton loaders for cards, spinners for actions; always provide empty-state messaging + CTA
 
-## Accessibility
-- WCAG 2.1 AA compliance is non-negotiable
-- All interactive elements need visible focus states
-- Images require descriptive alt text
-- Forms need proper labels (not just placeholders)
-- Color alone must not convey meaning
+## Accessibility (WCAG 2.1 AA)
+- Every image has meaningful `alt` text
+- Proper heading hierarchy (`h1 → h2 → h3`, no skipping)
+- All form inputs have associated `<label>` elements — not just placeholders
+- All interactive elements keyboard-navigable with visible focus indicators
+- Color contrast ratio minimum 4.5:1 for text; color alone must not convey meaning
 
-## State Management
-- No global state library for MVP — use React context + `useState`/`useReducer` where needed
-- Server state (Firestore data) managed via `onSnapshot` — no additional cache layer
+## Responsive
+- Mobile-first: design for 375px width, scale up
+- Location cards stack vertically on mobile, grid on desktop
+- Tab navigation on deep-dive view becomes accordion on mobile
+
+## State & Performance
+- No global state library for MVP — React context + `useState`/`useReducer`
 - Form state managed with controlled components or React Hook Form
+- Lazy-load heavy components with `next/dynamic`; use `next/image` for all images
 
-## Loading & Error States
-- Every async UI operation needs a loading state (skeleton or spinner)
-- Every error condition needs a user-visible message
-- Use optimistic updates sparingly — only where UX clearly benefits
-
-## Performance
-- Lazy-load heavy components with `next/dynamic`
-- Use `next/image` for all images
-- Avoid large client-side bundles — keep `'use client'` components lean
+## Never Do
+- Never use inline `style={{}}` — always Tailwind
+- Never skip loading/error/empty states on async data
+- Never hardcode text strings that should come from data
