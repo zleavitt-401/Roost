@@ -1,67 +1,60 @@
+import { Timestamp } from 'firebase/firestore';
+
 // ─── Core User & Profile ─────────────────────────────────────────────────────
 
 export interface UserProfile {
   userId: string;
   email: string;
-  createdAt: Date;
-  resumeUrl?: string;
-  parsedResume?: ParsedResume;
-  questionnaireAnswers?: QuestionnaireAnswers;
-  status: 'incomplete' | 'processing' | 'complete' | 'error';
+  resumeUrl: string;
+  coverLetterUrl?: string;
+  parsedResume: ParsedResume;
+  questionnaire: QuestionnaireAnswers;
+  profileAssembledAt: Timestamp;
+  agentStatus: 'pending' | 'processing' | 'complete' | 'error';
 }
 
 export interface ParsedResume {
-  fullName: string;
-  currentTitle: string;
-  yearsOfExperience: number;
+  jobTitles: string[];
   skills: string[];
-  education: EducationEntry[];
-  workHistory: WorkEntry[];
-  targetRoles: string[];
+  yearsExperience: number;
+  education: { institution: string; degree: string; year: number }[];
+  estimatedSalaryRange: { min: number; max: number };
   industries: string[];
-}
-
-export interface EducationEntry {
-  institution: string;
-  degree: string;
-  field: string;
-  graduationYear?: number;
-}
-
-export interface WorkEntry {
-  company: string;
-  title: string;
-  startDate: string;
-  endDate?: string;
-  description: string;
+  summary: string;
 }
 
 // ─── Questionnaire ───────────────────────────────────────────────────────────
 
 export interface QuestionnaireAnswers {
-  // Career preferences
-  remotePreference: 'fully-remote' | 'hybrid' | 'in-office' | 'no-preference';
-  salaryMin: number;
-  salaryTarget: number;
-  careerPriorities: string[];
-
-  // Lifestyle preferences
-  climatePreference: string[];
-  urbanDensity: 'urban' | 'suburban' | 'rural' | 'no-preference';
-  outdoorActivities: string[];
-  communityValues: string[];
-
-  // Practical constraints
-  budgetMax: number;
-  hasCar: boolean;
-  hasPets: boolean;
-  hasChildren: boolean;
-  currentCity: string;
-  openToRelocate: boolean;
-
-  // Free text
-  dealbreakers?: string;
-  additionalContext?: string;
+  career: {
+    industryOpenness: 'same' | 'adjacent' | 'open' | 'completely_open';
+    minSalary: number;
+    workStyle: 'remote' | 'hybrid' | 'in_person' | 'no_preference';
+    companySizePref: 'startup' | 'small' | 'medium' | 'large' | 'no_preference';
+    excludedIndustries: string[];
+  };
+  lifestyle: {
+    climatePref: 'warm' | 'mild' | 'cold_ok' | 'no_preference';
+    humidityTolerance: 'low' | 'medium' | 'high';
+    hobbies: string[];
+    walkabilityImportance: 'essential' | 'preferred' | 'not_important';
+    foodPriorities: string[];
+    nightlifeImportance: 'essential' | 'preferred' | 'not_important';
+  };
+  practical: {
+    maxRent: number;
+    hasPartner: boolean;
+    partnerJobNeeds?: string;
+    proximityTo: string[];
+    moveTimeline: 'asap' | '3_months' | '6_months' | '1_year' | 'flexible';
+    petFriendly: boolean;
+  };
+  values: {
+    politicalLeaning: 'progressive' | 'moderate' | 'conservative' | 'no_preference';
+    gunLawPref: 'strict' | 'moderate' | 'permissive' | 'no_preference';
+    diversityImportance: 'essential' | 'preferred' | 'not_important';
+    settingPref: 'urban' | 'suburban' | 'rural' | 'no_preference';
+  };
 }
 
 // ─── Agent Results ───────────────────────────────────────────────────────────
@@ -69,22 +62,20 @@ export interface QuestionnaireAnswers {
 export interface AgentResults {
   resultId: string;
   userId: string;
-  createdAt: Date;
-  status: 'pending' | 'processing' | 'complete' | 'error';
+  createdAt: Timestamp;
+  status: 'processing' | 'complete' | 'error';
   locations: LocationResult[];
-  errorMessage?: string;
 }
 
 export interface LocationResult {
   locationId: string;
   city: string;
   state: string;
-  overallScore: number;
-  summary: string;
-  jobMatches: JobMatch[];
+  overallFitScore: number;
+  highlightTags: string[];
+  userAction: 'none' | 'saved' | 'dismissed';
+  jobs: JobMatch[];
   living: LivingDetails;
-  housing: HousingListing[];
-  budget: MonthlyBudget;
   lifestyle: LifestyleDetails;
   context: ContextDetails;
 }
@@ -92,71 +83,69 @@ export interface LocationResult {
 // ─── Job Scout ───────────────────────────────────────────────────────────────
 
 export interface JobMatch {
-  jobId: string;
   title: string;
   company: string;
-  location: string;
-  salaryMin?: number;
-  salaryMax?: number;
-  remote: boolean;
-  url: string;
-  matchScore: number;
-  matchReasons: string[];
-  postedDate?: string;
+  salaryRange: { min: number; max: number };
+  fitScore: number;
+  fitExplanation: string;
+  applicationUrl: string;
+  workStyle: 'remote' | 'hybrid' | 'in_person';
 }
 
 // ─── Housing & Budget Analyst ─────────────────────────────────────────────────
 
+export interface LivingDetails {
+  costOfLivingIndex: number;
+  medianRent1br: number;
+  medianRent2br: number;
+  housingListings: HousingListing[];
+  sampleBudget: MonthlyBudget;
+}
+
 export interface HousingListing {
-  listingId: string;
-  address: string;
-  neighborhood: string;
+  title: string;
+  price: number;
   bedrooms: number;
-  bathrooms: number;
-  monthlyRent: number;
-  squareFeet?: number;
-  url?: string;
-  highlights: string[];
+  url: string;
+  neighborhood: string;
 }
 
 export interface MonthlyBudget {
   rent: number;
-  utilities: number;
   groceries: number;
+  utilities: number;
   transportation: number;
-  entertainment: number;
-  healthcare: number;
-  miscellaneous: number;
+  discretionary: number;
   total: number;
-  salaryNeeded: number;
-  notes: string;
+  estimatedSalary: number;
+  savingsRate: number;
 }
 
 // ─── Location Profiler ────────────────────────────────────────────────────────
 
-export interface LivingDetails {
-  costOfLivingIndex: number;
-  walkScore?: number;
-  transitScore?: number;
-  bikeScore?: number;
-  safetyRating?: number;
-  climate: string;
-  population: number;
-  growthRate?: number;
-}
-
 export interface LifestyleDetails {
-  outdoorActivities: string[];
-  culturalHighlights: string[];
-  neighborhoods: string[];
-  topRestaurants: string[];
-  communityVibe: string;
-  diversity?: string;
+  walkScore: number;
+  transitScore: number;
+  nearbyHobbies: { name: string; type: string; distance: string }[];
+  foodScene: string;
+  demographics: string;
 }
 
 export interface ContextDetails {
-  whyThisCity: string;
-  tradeoffs: string[];
-  localInsiderTip: string;
-  bestFitPersona: string;
+  recentNews: { headline: string; source: string; url: string; date: string }[];
+  politicalClimate: string;
+  weatherOverview: string;
+  crimeIndex: number;
+}
+
+// ─── API Contracts ────────────────────────────────────────────────────────────
+
+export interface AgentTriggerRequest {
+  userId: string;
+}
+
+export interface AgentTriggerResponse {
+  success: boolean;
+  resultId: string;
+  message: string;
 }

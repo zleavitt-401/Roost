@@ -2,11 +2,11 @@
 
 @theme inline {
   /* Brand Colors */
-  --color-terracotta: #C4604D;
-  --color-sage: #87A878;
-  --color-cream: #FDF6EC;
+  --color-terracotta: #C2785C;
+  --color-sage: #7D8B69;
+  --color-cream: #F5F0E8;
   --color-charcoal: #2C2C2C;
-  --color-accent: #D4913D;
+  --color-accent: #D4572A;
 
   /* Semantic aliases */
   --color-background: var(--color-cream);
@@ -18,13 +18,12 @@
   --font-sans: var(--font-dm-sans), sans-serif;
 }
 
-:root {
-  --background: #FDF6EC;
-  --foreground: #2C2C2C;
+body {
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-body);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body);
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
 }
